@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+/*
+  Unbroken token system.
+  Base: near-navy slate, not pure black — reads as "pre-dawn training", not "dashboard-in-space-mode".
+  Accents map 1:1 to disciplines so the same color always means the same sport across every chart/card.
+  Zone colors follow physiological intensity (cool aerobic -> hot anaerobic), reused for TSS/CTL/ATL work later.
+*/
+:root {
+  --background: #0c1220;
+  --surface: #12192b;
+  --surface-raised: #18213a;
+  --border: #263452;
+  --foreground: #e7ecf6;
+  --foreground-muted: #93a1c2;
+
+  --discipline-swim: #4fb3d9;
+  --discipline-bike: #e8a13d;
+  --discipline-run: #e8607a;
+  --discipline-strength: #8b7fd1;
+  --discipline-mobility: #5fbf8f;
+
+  --zone-z1: #4fb3d9;
+  --zone-z2: #5fbf8f;
+  --zone-z3: #e8c53d;
+  --zone-z4: #e8a13d;
+  --zone-z5: #e8607a;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-border: var(--border);
+  --color-foreground: var(--foreground);
+  --color-foreground-muted: var(--foreground-muted);
+
+  --color-discipline-swim: var(--discipline-swim);
+  --color-discipline-bike: var(--discipline-bike);
+  --color-discipline-run: var(--discipline-run);
+  --color-discipline-strength: var(--discipline-strength);
+  --color-discipline-mobility: var(--discipline-mobility);
+
+  --color-zone-z1: var(--zone-z1);
+  --color-zone-z2: var(--zone-z2);
+  --color-zone-z3: var(--zone-z3);
+  --color-zone-z4: var(--zone-z4);
+  --color-zone-z5: var(--zone-z5);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+* {
+  border-color: var(--border);
+}
+
+:focus-visible {
+  outline: 2px solid var(--discipline-bike);
+  outline-offset: 2px;
+}
