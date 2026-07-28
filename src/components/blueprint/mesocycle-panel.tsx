@@ -54,13 +54,10 @@ export function MesocyclePanel() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-xl font-medium tracking-tight">Blueprint</h1>
-        <p className="mt-1 text-sm text-foreground-muted">
-          Pick a week you&apos;ve already built as a template, then replicate it forward with
-          optional progressive overload.
-        </p>
-      </div>
+      <p className="text-sm text-foreground-muted">
+        Pick a week you&apos;ve already built as a template, then replicate it forward with
+        optional progressive overload.
+      </p>
 
       <section className="space-y-3">
         <div className="flex items-center justify-between">

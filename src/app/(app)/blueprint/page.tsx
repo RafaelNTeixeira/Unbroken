@@ -1,5 +1,5 @@
-import { MesocyclePanel } from "@/components/blueprint/mesocycle-panel";
+import { BlueprintTabs } from "@/components/blueprint/blueprint-tabs";
 
 export default function BlueprintPage() {
-  return <MesocyclePanel />;
+  return <BlueprintTabs />;
 }

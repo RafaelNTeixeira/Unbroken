@@ -40,12 +40,34 @@ npm run dev
   template, preview it, and clone it across N weeks with an optional
   progression toggle (compounding weekly % increase + automatic deload every
   N weeks). Brick pairs and bolted sessions are preserved in every clone.
-- **Phase 4 — Intelligent Generator**: constraint-based "Generate Training
-  Week" engine + the 11-Hour Ironman Baseline Preset.
+- **Phase 4 — Intelligent Generator** ✅ Constraint-based "Generate Training
+  Week" engine (available days, max sessions/day, target weekly hours) and a
+  one-click 11-Hour Ironman Baseline Preset, sharing one placement engine so
+  both reflow correctly across whichever days are actually available.
 - **Phase 5 — Strava Integration**: OAuth token storage, webhook listener,
   auto-reconciliation engine.
 - **Phase 6 — Analytics Dashboard**: 80/20 intensity distribution, planned
   vs. completed compliance, CTL/ATL/TSB.
+
+### Using the Generator (Phase 4)
+
+- On the Blueprint page's **Generate a week** tab, pick a target week, tick
+  the days you're actually available, set a max sessions/day cap, and either:
+  - **Custom generator**: give a target weekly hour count. It splits that
+    roughly 20/40/30/10 across swim/bike/run/strength (typical triathlon
+    volume distribution), turns each share into a session count using
+    realistic average session lengths, and round-robins them across your
+    available days — capping automatically if your capacity is too small to
+    fit everything (you'll see how many sessions didn't fit).
+  - **11-Hour Ironman Baseline**: applies the fixed 2 swim / 2 bike / 3 run /
+    2 bolted-strength structure from the spec, with the long ride and its
+    brick run always kept on the same day. If you mark fewer days available,
+    it reflows the same 9 sessions into a tighter week instead of assuming
+    a fixed Mon–Sun layout.
+- Both modes share a "clear this week's existing sessions first" option, and
+  both write straight into the same `planned_activities` table the Planner
+  and Blueprint cloning use — so anything generated is immediately editable,
+  drag-and-droppable, and clonable like any hand-built week.
 
 ### Using the Blueprint (Phase 3)
 
