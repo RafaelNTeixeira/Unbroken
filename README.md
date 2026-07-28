@@ -36,14 +36,30 @@ npm run dev
   (`@dnd-kit`), unbounded sessions per day, Brick Linker with combined
   duration/TSS, Bolted Sessions rendered as a unified block, cross-day
   drag-to-move, dashboard "Today" card wired to real data.
-- **Phase 3 — Mesocycle Cloning**: X-week replicator with a progression
-  toggle (volume/intensity scaling, deload weeks).
+- **Phase 3 — Mesocycle Cloning** ✅ Blueprint page: pick any built week as a
+  template, preview it, and clone it across N weeks with an optional
+  progression toggle (compounding weekly % increase + automatic deload every
+  N weeks). Brick pairs and bolted sessions are preserved in every clone.
 - **Phase 4 — Intelligent Generator**: constraint-based "Generate Training
   Week" engine + the 11-Hour Ironman Baseline Preset.
 - **Phase 5 — Strava Integration**: OAuth token storage, webhook listener,
   auto-reconciliation engine.
 - **Phase 6 — Analytics Dashboard**: 80/20 intensity distribution, planned
   vs. completed compliance, CTL/ATL/TSB.
+
+### Using the Blueprint (Phase 3)
+
+- Navigate to the week you want to use as a template (must have at least one
+  session), name the mesocycle, set how many weeks total (including that
+  template week), and optionally tune the progression settings.
+- Progression scales **every** session's duration/distance/TSS by a
+  compounding weekly percentage, with an automatic pullback every N weeks —
+  a deliberate simplification of the spec's "add 15 minutes to the long run"
+  example, which would require tagging a specific session as "the long run."
+  If you want that finer control later, it's a natural Phase 3.1 addition.
+- Deleting a mesocycle removes only the weeks it generated — the original
+  template week is never touched, since it existed before the clone and may
+  still be in use elsewhere.
 
 ### Using the Planner (Phase 2)
 

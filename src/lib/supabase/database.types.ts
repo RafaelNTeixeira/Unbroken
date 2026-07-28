@@ -2,6 +2,8 @@
 // Once the Supabase CLI is linked, regenerate with:
 //   supabase gen types typescript --project-id <your-project-id> > src/lib/supabase/database.types.ts
 
+import type { ProgressionConfig } from "@/lib/mesocycle/types";
+
 export type Discipline = "swim" | "bike" | "run" | "strength" | "mobility" | "other";
 export type TrainingZone = "z1" | "z2" | "z3" | "z4" | "z5" | "rest";
 export type ReconciliationStatus = "pending" | "matched" | "missed" | "unplanned_extra";
@@ -29,11 +31,7 @@ export interface TrainingBlockRow {
   start_date: string;
   end_date: string;
   progression_enabled: boolean;
-  progression_config: {
-    weekly_volume_increase_pct?: number;
-    deload_every_n_weeks?: number;
-    deload_drop_pct?: number;
-  } | null;
+  progression_config: ProgressionConfig | null;
   created_at: string;
   updated_at: string;
 }
