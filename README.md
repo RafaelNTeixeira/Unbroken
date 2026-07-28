@@ -32,8 +32,10 @@ npm run dev
 
 - **Phase 1 — Foundation** ✅ Next.js/Supabase scaffold, full relational
   schema with RLS, auth, app shell.
-- **Phase 2 — Manual Planner Core**: unbounded daily sessions, drag-and-drop
-  weekly builder, Brick Linker, Bolted Sessions.
+- **Phase 2 — Manual Planner Core** ✅ Drag-and-drop weekly builder
+  (`@dnd-kit`), unbounded sessions per day, Brick Linker with combined
+  duration/TSS, Bolted Sessions rendered as a unified block, cross-day
+  drag-to-move, dashboard "Today" card wired to real data.
 - **Phase 3 — Mesocycle Cloning**: X-week replicator with a progression
   toggle (volume/intensity scaling, deload weeks).
 - **Phase 4 — Intelligent Generator**: constraint-based "Generate Training
@@ -42,6 +44,20 @@ npm run dev
   auto-reconciliation engine.
 - **Phase 6 — Analytics Dashboard**: 80/20 intensity distribution, planned
   vs. completed compliance, CTL/ATL/TSB.
+
+### Using the Planner (Phase 2)
+
+- Drag a discipline block from the left palette onto any day to add a
+  session with sensible defaults, then click the pencil icon to fine-tune
+  title, duration, distance, zone, TSS, and time of day.
+- Drag the grip handle on a session to reorder it within a day, or drop it
+  on a different day to move it.
+- Click the link icon on a session to brick-link it with the next session
+  that day (e.g. bike → run); the combined duration/TSS shows automatically.
+  Click again to unlink.
+- Click the `+` icon on a session to bolt a short secondary session (e.g.
+  core work) onto it — it renders nested inside the parent card instead of
+  taking its own slot.
 
 ## Project structure
 
