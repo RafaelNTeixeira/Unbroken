@@ -1,5 +1,7 @@
+import { Suspense } from "react";
 import { getAuthUserAndProfile } from "@/lib/supabase/get-user";
 import { ProfileForm } from "@/components/settings/profile-form";
+import { StravaConnectCard } from "@/components/settings/strava-connect-card";
 
 export default async function SettingsPage() {
   const { authUserId, profile } = await getAuthUserAndProfile();
@@ -17,18 +19,13 @@ export default async function SettingsPage() {
 
       <ProfileForm userId={authUserId} initial={profile ?? {}} />
 
-      <div className="max-w-lg rounded-2xl border border-border bg-surface p-5">
-        <h2 className="text-sm font-medium">Strava connection</h2>
-        <p className="mt-1 text-sm text-foreground-muted">
-          Connecting Strava and automatic activity ingestion ship in Phase 5.
-        </p>
-        <button
-          disabled
-          className="mt-3 rounded-lg border border-border px-3 py-1.5 text-sm text-foreground-muted opacity-60"
-        >
-          Connect Strava
-        </button>
-      </div>
+      <Suspense fallback={null}>
+        <StravaConnectCard
+          userId={authUserId}
+          connected={Boolean(profile?.strava_athlete_id)}
+          athleteId={profile?.strava_athlete_id ?? null}
+        />
+      </Suspense>
     </div>
   );
 }

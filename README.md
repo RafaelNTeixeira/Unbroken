@@ -44,10 +44,52 @@ npm run dev
   Week" engine (available days, max sessions/day, target weekly hours) and a
   one-click 11-Hour Ironman Baseline Preset, sharing one placement engine so
   both reflow correctly across whichever days are actually available.
-- **Phase 5 — Strava Integration**: OAuth token storage, webhook listener,
-  auto-reconciliation engine.
+- **Phase 5 — Strava Integration** ✅ Real OAuth connect/disconnect flow,
+  tokens encrypted at rest via `pgcrypto`, a Supabase Edge Function webhook
+  listener, and an auto-reconciliation engine matching completed activities
+  against the plan.
 - **Phase 6 — Analytics Dashboard**: 80/20 intensity distribution, planned
   vs. completed compliance, CTL/ATL/TSB.
+
+### Using Strava sync (Phase 5)
+
+Full setup (Strava app registration, Edge Function deployment, webhook
+registration, end-to-end test) is in `SETUP.md` steps 6–10. Once connected:
+
+- New Strava activities are ingested within seconds via the
+  `strava-webhook` Edge Function (`supabase/functions/strava-webhook`).
+- The reconciliation engine matches a completed activity to a planned
+  session on the same calendar date with the same discipline, choosing
+  whichever open (unmatched) candidate has the closest target duration.
+  Matches are recorded in `reconciliation_logs` with duration variance,
+  distance variance, and a power-adherence percentage (based on your FTP
+  from Settings).
+- The Dashboard's Strava card shows your last 5 synced activities (with a
+  checkmark once matched) and flags any of the last 7 days' planned
+  sessions that haven't matched anything yet.
+
+**Known, deliberate simplifications** (documented rather than silently
+approximated):
+- `heartrate_decoupling_pct` is always `null`. True Pw:Hr decoupling needs
+  time-series stream data (Strava's `/activities/{id}/streams` endpoint),
+  not the activity summary this function fetches. A good Phase 6 addition
+  if you want it.
+- "Missed" sessions are **derived at read time** on the Dashboard, not
+  written to `reconciliation_logs` with `status = 'missed'`. Marking
+  something missed for real requires knowing the day is over, which needs
+  either a scheduled job (`pg_cron`, available on Supabase's free tier) or
+  a client-side sweep — I chose to keep this zero-infrastructure for now
+  rather than add a cron dependency; happy to add one if you'd rather have
+  it persisted.
+- Matching same-day/same-discipline by closest duration is a heuristic, not
+  a guarantee — if you log two runs of similar length on the same day, the
+  second to sync may match the "wrong" one. Reconciliation rows are visible
+  and correctable directly in the `reconciliation_logs` table if that ever
+  happens.
+- Tokens are encrypted with `pgcrypto` using a key that lives only in your
+  server env vars (`STRAVA_TOKEN_ENCRYPTION_KEY`) — real protection against
+  a raw database leak, though not a substitute for Supabase Vault if you
+  want key rotation/audit logging later.
 
 ### Using the Generator (Phase 4)
 
