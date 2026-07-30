@@ -1,9 +1,10 @@
 import type { CompletedActivityRow, PlannedActivityRow, ReconciliationStatus } from "@/lib/supabase/database.types";
-import { CalendarRange, CheckCircle2, Link2 } from "lucide-react";
+import { CalendarRange, CheckCircle2, NotebookPen } from "lucide-react";
 import { getAuthUserAndProfile } from "@/lib/supabase/get-user";
 import { createClient } from "@/lib/supabase/server";
 import { DISCIPLINE_META } from "@/lib/planner/discipline-meta";
 import { addDays, formatDuration, toDateKey } from "@/lib/planner/date-utils";
+import { LogWorkoutForm } from "@/components/dashboard/log-workout-form";
 
 async function getTodaysActivities(userId: string): Promise<PlannedActivityRow[]> {
   const supabase = await createClient();
@@ -61,8 +62,8 @@ async function getMatchStatuses(
 }
 
 // Derived, not stored: a planned (non-bolted) session from the last 7 days
-// with no 'matched' reconciliation_logs row. See README Phase 5 notes on
-// why this is computed on read rather than written by a cron job.
+// with no 'matched' reconciliation_logs row. Works the same whether the
+// match came from a manual log or (previously) a Strava sync.
 async function getMissedCount(userId: string): Promise<number> {
   const supabase = await createClient();
   const weekAgoKey = toDateKey(addDays(new Date(), -7));
@@ -98,28 +99,27 @@ async function getMissedCount(userId: string): Promise<number> {
 export default async function DashboardPage() {
   const { authUserId, profile } = await getAuthUserAndProfile();
   const name = profile?.display_name?.split(" ")[0] || "there";
-  const stravaConnected = Boolean(profile?.strava_athlete_id);
 
   const todaysActivities = authUserId ? await getTodaysActivities(authUserId) : [];
-  const recentCompleted = authUserId && stravaConnected ? await getRecentCompleted(authUserId) : [];
+  const recentCompleted = authUserId ? await getRecentCompleted(authUserId) : [];
   const matchStatuses = authUserId
     ? await getMatchStatuses(
         authUserId,
         recentCompleted.map((a) => a.id)
       )
     : new Map<string, ReconciliationStatus>();
-  const missedCount = authUserId && stravaConnected ? await getMissedCount(authUserId) : 0;
+  const missedCount = authUserId ? await getMissedCount(authUserId) : 0;
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-medium tracking-tight">Welcome back, {name}</h1>
         <p className="mt-1 text-sm text-foreground-muted">
-          Here&apos;s today&apos;s plan and your recent Strava activity.
+          Here&apos;s today&apos;s plan and what you&apos;ve logged recently.
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-3">
         <div className="rounded-2xl border border-border bg-surface p-5">
           <div className="flex items-center gap-2 text-sm text-foreground-muted">
             <CalendarRange size={16} />
@@ -145,57 +145,53 @@ export default async function DashboardPage() {
               ))}
             </ul>
           )}
+          {missedCount > 0 && (
+            <p className="mt-3 text-xs text-discipline-run">
+              {missedCount} planned session{missedCount === 1 ? "" : "s"} from the last 7 days
+              {missedCount === 1 ? " hasn't" : " haven't"} been logged yet.
+            </p>
+          )}
+        </div>
+
+        <div className="rounded-2xl border border-border bg-surface p-5">
+          <div className="mb-3 flex items-center gap-2 text-sm text-foreground-muted">
+            <NotebookPen size={16} />
+            Log a workout
+          </div>
+          <LogWorkoutForm />
         </div>
 
         <div className="rounded-2xl border border-border bg-surface p-5">
           <div className="flex items-center gap-2 text-sm text-foreground-muted">
-            <Link2 size={16} />
-            Strava
+            <CheckCircle2 size={16} />
+            Recently logged
           </div>
-
-          {!stravaConnected ? (
+          {recentCompleted.length === 0 ? (
             <p className="mt-3 text-sm text-foreground-muted">
-              Not connected —{" "}
-              <a href="/settings" className="underline">
-                connect it in Settings
-              </a>{" "}
-              to auto-ingest workouts.
+              Nothing logged yet — use the form to record a completed session, or mark one
+              complete directly from the Planner.
             </p>
           ) : (
-            <>
-              {missedCount > 0 && (
-                <p className="mt-3 text-sm text-discipline-run">
-                  {missedCount} planned session{missedCount === 1 ? "" : "s"} from the last 7
-                  days {missedCount === 1 ? "hasn't" : "haven't"} matched an activity yet.
-                </p>
-              )}
-              {recentCompleted.length === 0 ? (
-                <p className="mt-3 text-sm text-foreground-muted">
-                  Connected — no activities synced yet.
-                </p>
-              ) : (
-                <ul className="mt-3 space-y-2">
-                  {recentCompleted.map((a) => {
-                    const status = matchStatuses.get(a.id);
-                    return (
-                      <li key={a.id} className="flex items-center gap-2 text-sm">
-                        <span
-                          className="h-2 w-2 shrink-0 rounded-full"
-                          style={{ backgroundColor: DISCIPLINE_META[a.discipline].colorVar }}
-                        />
-                        <span className="truncate">{a.name ?? DISCIPLINE_META[a.discipline].label}</span>
-                        <span className="shrink-0 text-xs text-foreground-muted">
-                          {formatDuration(a.moving_time_sec)}
-                        </span>
-                        {status === "matched" && (
-                          <CheckCircle2 size={13} className="shrink-0 text-discipline-mobility" />
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </>
+            <ul className="mt-3 space-y-2">
+              {recentCompleted.map((a) => {
+                const status = matchStatuses.get(a.id);
+                return (
+                  <li key={a.id} className="flex items-center gap-2 text-sm">
+                    <span
+                      className="h-2 w-2 shrink-0 rounded-full"
+                      style={{ backgroundColor: DISCIPLINE_META[a.discipline].colorVar }}
+                    />
+                    <span className="truncate">{a.name ?? DISCIPLINE_META[a.discipline].label}</span>
+                    <span className="shrink-0 text-xs text-foreground-muted">
+                      {formatDuration(a.moving_time_sec)}
+                    </span>
+                    {status === "matched" && (
+                      <CheckCircle2 size={13} className="shrink-0 text-discipline-mobility" />
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
           )}
         </div>
       </div>

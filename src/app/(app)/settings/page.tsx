@@ -1,7 +1,5 @@
-import { Suspense } from "react";
 import { getAuthUserAndProfile } from "@/lib/supabase/get-user";
 import { ProfileForm } from "@/components/settings/profile-form";
-import { StravaConnectCard } from "@/components/settings/strava-connect-card";
 
 export default async function SettingsPage() {
   const { authUserId, profile } = await getAuthUserAndProfile();
@@ -13,19 +11,12 @@ export default async function SettingsPage() {
       <div>
         <h1 className="text-xl font-medium tracking-tight">Settings</h1>
         <p className="mt-1 text-sm text-foreground-muted">
-          Thresholds here drive target zones across the planner and analytics.
+          Thresholds here drive target zones across the planner, and your FTP drives the power
+          adherence numbers shown when you log a completed session.
         </p>
       </div>
 
       <ProfileForm userId={authUserId} initial={profile ?? {}} />
-
-      <Suspense fallback={null}>
-        <StravaConnectCard
-          userId={authUserId}
-          connected={Boolean(profile?.strava_athlete_id)}
-          athleteId={profile?.strava_athlete_id ?? null}
-        />
-      </Suspense>
     </div>
   );
 }

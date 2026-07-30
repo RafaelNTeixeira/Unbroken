@@ -141,32 +141,7 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: {
-      save_strava_tokens: {
-        Args: {
-          p_user_id: string;
-          p_athlete_id: number;
-          p_access_token: string;
-          p_refresh_token: string;
-          p_expires_at: string;
-          p_encryption_key: string;
-        };
-        Returns: void;
-      };
-      get_strava_tokens: {
-        Args: { p_user_id: string; p_encryption_key: string };
-        Returns: {
-          access_token: string | null;
-          refresh_token: string | null;
-          expires_at: string | null;
-          athlete_id: number | null;
-        }[];
-      };
-      clear_strava_tokens: {
-        Args: { p_user_id: string };
-        Returns: void;
-      };
-    };
+    Functions: Record<string, never>;
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };

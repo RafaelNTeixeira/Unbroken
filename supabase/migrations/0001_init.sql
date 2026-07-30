@@ -1,7 +1,7 @@
 -- ============================================================================
 -- Unbroken — Initial Schema (Phase 1)
 -- Decoupled calendar-day / activity model supporting unbounded sessions/day,
--- brick linking, bolted sessions, mesocycle cloning, and Strava reconciliation.
+-- brick linking, bolted sessions, mesocycle cloning, and workout reconciliation.
 -- ============================================================================
 
 create extension if not exists "pgcrypto";
@@ -26,8 +26,8 @@ create table public.users (
   threshold_pace_swim_sec_per_100m integer,
   max_sessions_per_day integer not null default 3,
   default_available_days jsonb not null default '["mon","tue","wed","thu","fri","sat","sun"]',
-  strava_athlete_id bigint unique,
-  strava_access_token text,              -- stored encrypted at rest via Supabase Vault in production
+  strava_athlete_id bigint unique,       -- reserved: unused unless you add optional Strava sync back
+  strava_access_token text,              -- reserved: see README "A note on Strava"
   strava_refresh_token text,
   strava_token_expires_at timestamptz,
   created_at timestamptz not null default now(),
@@ -99,7 +99,7 @@ create index idx_planned_activities_user on public.planned_activities (user_id);
 create index idx_planned_activities_brick_group on public.planned_activities (brick_group_id);
 
 -- ----------------------------------------------------------------------------
--- COMPLETED ACTIVITIES — raw/parsed data ingested from Strava
+-- COMPLETED ACTIVITIES — logged manually, or (optionally, if re-added later) ingested from Strava
 -- ----------------------------------------------------------------------------
 
 create table public.completed_activities (

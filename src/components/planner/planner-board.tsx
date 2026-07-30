@@ -12,6 +12,8 @@ import {
 import { arrayMove } from "@dnd-kit/sortable";
 import { useAuthUserId } from "@/lib/supabase/use-auth-user";
 import { usePlannerMutations, useWeekPlan } from "@/lib/planner/hooks";
+import { useMarkComplete, useWeekCompletionStatus } from "@/lib/logging/hooks";
+import { draftToActuals, LogCompletionSheet, type CompletionDraft } from "@/components/planner/log-completion-sheet";
 import { startOfWeek, getWeekDates, toDateKey } from "@/lib/planner/date-utils";
 import { DISCIPLINE_META } from "@/lib/planner/discipline-meta";
 import type { Discipline, PlannedActivityRow } from "@/lib/supabase/database.types";
@@ -24,6 +26,7 @@ import type { WeekPlan } from "@/lib/planner/types";
 type EditorState =
   | { mode: "edit"; activity: PlannedActivityRow }
   | { mode: "bolt"; parent: PlannedActivityRow; dateKey: string }
+  | { mode: "log"; activity: PlannedActivityRow; dateKey: string }
   | null;
 
 function findDateKeyForActivity(plan: WeekPlan | undefined, activityId: string): string | null {
@@ -47,9 +50,19 @@ export function PlannerBoard() {
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
   const { data: plan, isLoading } = useWeekPlan(userId, weekStart);
   const mutations = usePlannerMutations(userId, weekStart);
+  const markComplete = useMarkComplete(userId);
   const [editor, setEditor] = useState<EditorState>(null);
 
   const weekDates = useMemo(() => getWeekDates(weekStart), [weekStart]);
+
+  const topLevelActivityIds = useMemo(
+    () =>
+      Object.values(plan ?? {}).flatMap((day) =>
+        day.activities.filter((a) => !a.is_bolted).map((a) => a.id)
+      ),
+    [plan]
+  );
+  const { data: completionStatus } = useWeekCompletionStatus(userId, topLevelActivityIds);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -122,6 +135,22 @@ export function PlannerBoard() {
     setEditor(null);
   }
 
+  function handleSaveCompletion(draft: CompletionDraft) {
+    if (editor?.mode !== "log") return;
+    const actuals = draftToActuals(draft);
+    markComplete.mutate({
+      planned: {
+        id: editor.activity.id,
+        discipline: editor.activity.discipline,
+        title: editor.activity.title,
+        target_duration_sec: editor.activity.target_duration_sec,
+        target_distance_m: editor.activity.target_distance_m,
+      },
+      input: { plannedActivityId: editor.activity.id, dateKey: editor.dateKey, ...actuals },
+    });
+    setEditor(null);
+  }
+
   if (!userId || isLoading) {
     return <div className="py-16 text-center text-sm text-foreground-muted">Loading your week…</div>;
   }
@@ -150,6 +179,7 @@ export function PlannerBoard() {
                   key={dateKey}
                   dateKey={dateKey}
                   activities={plan?.[dateKey]?.activities ?? []}
+                  completionStatus={completionStatus ?? new Map()}
                   onEditActivity={(activity) => setEditor({ mode: "edit", activity })}
                   onDeleteActivity={(id) => mutations.deleteActivity.mutate(id)}
                   onToggleBrick={(firstId, secondId) =>
@@ -157,6 +187,7 @@ export function PlannerBoard() {
                   }
                   onBoltActivity={(parent) => setEditor({ mode: "bolt", parent, dateKey })}
                   onUnboltActivity={(id) => mutations.unboltActivity.mutate(id)}
+                  onMarkComplete={(activity) => setEditor({ mode: "log", activity, dateKey })}
                 />
               );
             })}
@@ -185,6 +216,15 @@ export function PlannerBoard() {
           title={`Bolt onto "${editor.parent.title}"`}
           onClose={() => setEditor(null)}
           onSave={handleSaveEditor}
+        />
+      )}
+
+      {editor?.mode === "log" && (
+        <LogCompletionSheet
+          activity={editor.activity}
+          isSaving={markComplete.isPending}
+          onClose={() => setEditor(null)}
+          onSave={handleSaveCompletion}
         />
       )}
     </div>

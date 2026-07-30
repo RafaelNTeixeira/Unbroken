@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Link2, Pencil, Plus, Trash2, X } from "lucide-react";
-import type { PlannedActivityRow } from "@/lib/supabase/database.types";
+import { CheckCircle2, Circle, GripVertical, Link2, Pencil, Plus, Trash2, X } from "lucide-react";
+import type { PlannedActivityRow, ReconciliationStatus } from "@/lib/supabase/database.types";
 import { DISCIPLINE_META, ZONE_META } from "@/lib/planner/discipline-meta";
 import { formatDuration } from "@/lib/planner/date-utils";
 
@@ -24,24 +24,28 @@ export function ActivityCard({
   boltedChildren,
   brickPartnerTitle,
   combinedBrickSummary,
+  completionStatus,
   onEdit,
   onDelete,
   onToggleBrickWithNext,
   canLinkBrickWithNext,
   onBolt,
   onUnbolt,
+  onMarkComplete,
 }: {
   activity: PlannedActivityRow;
   dateKey: string;
   boltedChildren: PlannedActivityRow[];
   brickPartnerTitle: string | null;
   combinedBrickSummary: string | null;
+  completionStatus?: ReconciliationStatus;
   onEdit: () => void;
   onDelete: () => void;
   onToggleBrickWithNext: (() => void) | null;
   canLinkBrickWithNext: boolean;
   onBolt: () => void;
   onUnbolt: (id: string) => void;
+  onMarkComplete: () => void;
 }) {
   const [hovered, setHovered] = useState(false);
   const meta = DISCIPLINE_META[activity.discipline];
@@ -88,7 +92,12 @@ export function ActivityCard({
 
           <div className="min-w-0 flex-1">
             <div className="flex items-center justify-between gap-2">
-              <p className="truncate text-sm font-medium">{activity.title}</p>
+              <div className="flex items-center gap-1.5 truncate">
+                <p className="truncate text-sm font-medium">{activity.title}</p>
+                {completionStatus === "matched" && (
+                  <CheckCircle2 size={13} className="shrink-0 text-discipline-mobility" />
+                )}
+              </div>
               {activity.time_of_day && (
                 <span className="shrink-0 text-[11px] text-foreground-muted">
                   {activity.time_of_day.slice(0, 5)}
@@ -136,6 +145,17 @@ export function ActivityCard({
             hovered ? "opacity-100" : "opacity-0"
           }`}
         >
+          <button
+            onClick={onMarkComplete}
+            className={`rounded-md p-1 hover:bg-surface ${
+              completionStatus === "matched"
+                ? "text-discipline-mobility"
+                : "text-foreground-muted hover:text-foreground"
+            }`}
+            aria-label={completionStatus === "matched" ? "Log completion again" : "Mark complete"}
+          >
+            {completionStatus === "matched" ? <CheckCircle2 size={12} /> : <Circle size={12} />}
+          </button>
           <button
             onClick={onEdit}
             className="rounded-md p-1 text-foreground-muted hover:bg-surface hover:text-foreground"

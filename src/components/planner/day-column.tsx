@@ -2,26 +2,30 @@
 
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import type { PlannedActivityRow } from "@/lib/supabase/database.types";
+import type { PlannedActivityRow, ReconciliationStatus } from "@/lib/supabase/database.types";
 import { ActivityCard } from "@/components/planner/activity-card";
 import { formatDayLabel, formatDuration, isToday, parseDateKey } from "@/lib/planner/date-utils";
 
 export function DayColumn({
   dateKey,
   activities,
+  completionStatus,
   onEditActivity,
   onDeleteActivity,
   onToggleBrick,
   onBoltActivity,
   onUnboltActivity,
+  onMarkComplete,
 }: {
   dateKey: string;
   activities: PlannedActivityRow[];
+  completionStatus: Map<string, ReconciliationStatus>;
   onEditActivity: (activity: PlannedActivityRow) => void;
   onDeleteActivity: (id: string) => void;
   onToggleBrick: (firstId: string, secondId: string) => void;
   onBoltActivity: (parent: PlannedActivityRow) => void;
   onUnboltActivity: (id: string) => void;
+  onMarkComplete: (activity: PlannedActivityRow) => void;
 }) {
   const date = parseDateKey(dateKey);
   const { weekday, day } = formatDayLabel(date);
@@ -104,6 +108,7 @@ export function DayColumn({
                     : null
                 }
                 combinedBrickSummary={combinedBrickSummary(activity)}
+                completionStatus={completionStatus.get(activity.id)}
                 onEdit={() => onEditActivity(activity)}
                 onDelete={() => onDeleteActivity(activity.id)}
                 canLinkBrickWithNext={Boolean(next)}
@@ -116,6 +121,7 @@ export function DayColumn({
                 }
                 onBolt={() => onBoltActivity(activity)}
                 onUnbolt={onUnboltActivity}
+                onMarkComplete={() => onMarkComplete(activity)}
               />
             );
           })}
