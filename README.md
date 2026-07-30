@@ -49,8 +49,11 @@ npm run dev
   from the Dashboard (auto-matched against that day's plan) — the same
   reconciliation model the spec describes, without depending on a paid
   third-party API.
-- **Phase 6 — Analytics Dashboard**: 80/20 intensity distribution, planned
-  vs. completed compliance, CTL/ATL/TSB.
+- **Phase 6 — Analytics Dashboard** ✅ Fitness/Fatigue (CTL/ATL/TSB), 80/20
+  intensity distribution, and planned-vs-completed compliance by discipline —
+  all computed client-side from logged data, no third-party dependency.
+
+All six phases from the original spec are now built.
 
 ### A note on Strava
 
@@ -62,6 +65,45 @@ integration was removed in favor of manual logging. The data model
 (`completed_activities.strava_id`, `reconciliation_logs`) was deliberately
 left compatible with re-adding Strava sync later as an optional extra, if
 you'd rather pay for it than log manually.
+
+### Using Analytics (Phase 6)
+
+Three sections, each with its own time-window selector:
+
+- **Fitness & Fatigue**: CTL (Chronic Training Load, 42-day exponentially
+  weighted average of daily "load"), ATL (Acute Training Load, 7-day
+  version), and Form/TSB (CTL − ATL, computed from the *previous* day so it
+  reflects freshness entering each day rather than after that day's
+  session). This follows the standard EWMA formula
+  (`value += (today − value) / timeConstant`), applied to an estimated load
+  per session rather than a real TSS.
+- **80/20 Intensity Distribution**: a donut of time spent in Low (Z1–Z2),
+  Grey zone (Z3), and Threshold+ (Z4–Z5), compared against the 80/20 target,
+  with a specific callout if the grey-zone share creeps above 15% — the
+  "easy days aren't easy enough" pattern the spec calls out by name. Only
+  sessions logged **against a specific planned session with a target zone**
+  count here; ad-hoc logs without a matched zone are excluded and shown as
+  a separate "unclassified" total rather than silently guessed at.
+- **Volume & Frequency Compliance**: planned vs. completed hours (bar
+  chart) and session counts (table) per discipline, over the last 4/8/12
+  weeks.
+
+**How "load" is estimated** (documented, not a real TSS — see
+`src/lib/analytics/types.ts`): `hours × intensityFactor² × 100`. When a
+session has both average watts and an FTP set in Settings, intensity factor
+is `avgWatts / FTP` (a proxy for normalized-power-based TSS, using average
+power since manual entry doesn't have a power stream to normalize). Without
+power, it falls back to a zone-based intensity factor — the session's
+matched planned target zone if it has one, otherwise a per-discipline
+default (e.g. strength defaults to Z3, mobility to Z1). This is a
+transparent relative-trend proxy, not a substitute for a real power meter
+or a validated HR-based TRIMP model.
+
+**Known limitation**: CTL/ATL necessarily start at zero and ramp up from
+whenever you started logging in this app — there's no historical import,
+so the first ~42 days of the Fitness chart will read lower than your actual
+fitness if you were already trained going in. This is inherent to not
+having prior training history, not a bug.
 
 ### Using manual logging (Phase 5)
 
